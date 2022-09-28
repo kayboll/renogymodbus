@@ -12,6 +12,23 @@ class RenogyChargeController(RetriableInstrument):
         * slaveaddress (int): slave address in the range 1 to 247
 
     """
+    BATTERY_TYPE = {
+    1: 'open',
+    2: 'sealed',
+    3: 'gel',
+    4: 'lithium',
+    5: 'self-customized'
+    }
+
+    CHARGING_STATE = {
+    0: 'deactivated',
+    1: 'activated',
+    2: 'mppt',
+    3: 'equalizing',
+    4: 'boost',
+    5: 'floating',
+    6: 'current limiting'
+    }
 
     def __init__(self, portname, slaveaddress):
         super().__init__(portname, slaveaddress)
@@ -87,3 +104,28 @@ class RenogyChargeController(RetriableInstrument):
     def get_minimum_battery_voltage_today(self):
         """Minimum solar power today"""
         return self.retriable_read_register(0x010B, 1, 3, False)
+    
+    def get_charging_status(self):
+        #return self.read_register(288) & 0x00ff
+        return self.retriable_read_register(0x0120, 0, 3, False)
+
+    def get_charging_status_label(self):
+        return self.CHARGING_STATE.get(self.get_charging_status())
+
+    def get_charging_amp_hours_today(self):
+        """
+        Read charging amp hours for the current day
+        """
+        #return self.read_register(273)
+        return self.retriable_read_register(273, 0, 3, False)
+
+    def get_discharging_amp_hours_today(self):
+        """
+        Read discharging amp hours for the current day
+        """
+        #return self.read_register(274)
+        return self.retriable_read_register(274, 0, 3, False)
+
+    def get_power_generation_today(self):
+        #return self.read_register(275)
+        return self.retriable_read_register(275, 0, 3, False)
